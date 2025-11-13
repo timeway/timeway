@@ -5,5 +5,5 @@
 
 ## Planilha de testes
 | **ID** | **Requisito/Teste**        | **Passos para reproduzir**                                         | **Resultado esperado**                       | **Resultado Obtido**                | **Status(OK/Erro)** | Observações |
-| ------ | -------------------------- | ------------------------------------------------------------------ | -------------------------------------------- | ----------------------------------- | ------------------- | ----------- |
-| CT-01  | Movimentação do personagem | Apertar nas teclas: `a`, `d`, `arrow left`, `arrow right`, `space` | Personagem se mover, seja pulando ou andando | O jogador pula e anda perfeitamente | OK                  |             |
+| :------: | :--------------------------: | :------------------------------------------------------------------: | :--------------------------------------------: | :-----------------------------------: | :-----------------: | :-----------: |
+| CT-01  | Movimentação do personagem | Apertar nas teclas: `a`, `d`, `arrow left`, `arrow right`, `space` | Personagem se mover, seja pulando ou andando | O jogador pula e anda perfeitamente |         OK          |             |
