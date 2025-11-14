@@ -75,9 +75,20 @@ namespace Timeway.Gameplay.Player
             }
         }
 
-        void OnCollisionEnter2D(Collision2D collision)
+        void OnCollisionEnter2D(Collision2D other)
         {
-            if (collision.contacts.Length > 0 && collision.contacts[0].normal.y > 0.5f) isOnGround = true;
+            if (other.gameObject.CompareTag("Ground"))
+            {
+                isOnGround = true;
+            }
+        }
+
+        void OnTriggerExit2D(Collider2D other)
+        {
+            if (other.gameObject.CompareTag("Ground"))
+            {
+                isOnGround = false;
+            }
         }
     }
 }
