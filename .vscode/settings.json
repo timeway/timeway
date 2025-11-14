@@ -51,10 +51,10 @@
         "Obj/": true,
         "Logs/": true,
         "logs/": true,
-        "ProjectSettings/": false,
+        "ProjectSettings/": true,
         "UserSettings/": true,
         "temp/": true,
         "Temp/": true
     },
-    "dotnet.defaultSolution": "timeway.sln"
+    "dotnet.defaultSolution": "teste de coleta de item.sln"
 }
