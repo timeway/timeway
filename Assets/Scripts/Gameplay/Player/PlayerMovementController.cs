@@ -1,3 +1,4 @@
+using Timeway.Gameplay.AnimatorHanlder;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -7,11 +8,17 @@ namespace Timeway.Gameplay.Player
     {
         private bool m_IsOnGround;
         [SerializeField] private Rigidbody2D m_Rigidbody2D;
+        [SerializeField] private SpriteRenderer m_SpriteRenderer;
+        // [SerializeField] private AnimatorHandlerController m_AnimatorHandler;
+        [SerializeField] private Animator m_Aniamtor;
+        [SerializeField] private Transform m_TransformChildCollider;
+        
         private InputSystemActions m_InputSystemActions;
         private float m_MoveSpeed = 5f;
         private float m_JumpSpeed = 5f;
         private Vector2 m_MoveInput;
         private float m_TimeDelay = 1f;
+        private bool m_ConditionFlip;
 
         private void Awake()
         {
@@ -46,6 +53,13 @@ namespace Timeway.Gameplay.Player
                 m_Rigidbody2D.AddForce(Vector2.up * m_JumpSpeed * 1.3f);
             }
             m_Rigidbody2D.linearVelocity = new Vector2(m_MoveInput.x * m_MoveSpeed,    m_Rigidbody2D.linearVelocity.y);
+            if (m_Rigidbody2D.linearVelocity.x != 0)
+            {
+                m_ConditionFlip = m_Rigidbody2D.linearVelocity.x < 0f;
+                m_SpriteRenderer.flipX = m_ConditionFlip;
+                m_TransformChildCollider.localScale = new Vector3(m_ConditionFlip ? -1f : 1f, m_TransformChildCollider.localScale.y, m_TransformChildCollider.localScale.z);
+            }
+            HandleAnimation();
         }
 
         private void OnActionsTriggered(InputAction.CallbackContext ctx)
@@ -89,6 +103,13 @@ namespace Timeway.Gameplay.Player
             {
                 m_IsOnGround = false;
             }
+        }
+
+        private void HandleAnimation()
+        {
+            m_Aniamtor.SetBool("Idle", m_Rigidbody2D.linearVelocity.x == 0f && m_IsOnGround);
+            m_Aniamtor.SetBool("Walking", m_Rigidbody2D.linearVelocity.x != 0f && m_IsOnGround);
+            m_Aniamtor.SetBool("Jumping", m_Rigidbody2D.linearVelocity.y != 0f && !m_IsOnGround);
         }
     }
 }

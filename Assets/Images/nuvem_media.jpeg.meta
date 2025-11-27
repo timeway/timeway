@@ -100,7 +100,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: nuvem_media_0
+      name: nuvem_media
       rect:
         serializedVersion: 2
         x: 0
@@ -135,7 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      nuvem_media_0: -7839065490588353806
+      nuvem_media: -7839065490588353806
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
