@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using Timeway.Gameplay.AnimatorHanlder;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -9,7 +10,6 @@ namespace Timeway.Gameplay.Player
         private bool m_IsOnGround;
         [SerializeField] private Rigidbody2D m_Rigidbody2D;
         [SerializeField] private SpriteRenderer m_SpriteRenderer;
-        // [SerializeField] private AnimatorHandlerController m_AnimatorHandler;
         [SerializeField] private Animator m_Aniamtor;
         [SerializeField] private Transform m_TransformChildCollider;
         
