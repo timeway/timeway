@@ -7,7 +7,7 @@ namespace Timeway.Gameplay.Camera
 {
     public class CameraZones : MonoBehaviour
     {
-        public Action<CameraZones> onColliderTrigger;
+        public event Action<CameraZones> onColliderTrigger;
 
         [SerializeField] private CinemachineCamera cinemachineCamera;
 
@@ -16,7 +16,6 @@ namespace Timeway.Gameplay.Camera
             if (other.TryGetComponent<PlayerMovementController>(out var ctx))
             {
                 onColliderTrigger?.Invoke(this);
-                print($"{other.gameObject.name} esta colidindo com {gameObject.name}");
             }
         }
 
