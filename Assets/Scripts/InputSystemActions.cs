@@ -133,7 +133,7 @@ namespace Timeway
                     ""name"": ""Crouch"",
                     ""type"": ""Button"",
                     ""id"": ""27c5f898-bc57-4ee1-8800-db469aca5fe3"",
-                    ""expectedControlType"": ""Button"",
+                    ""expectedControlType"": """",
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
@@ -591,7 +591,7 @@ namespace Timeway
                     ""name"": ""Submit"",
                     ""type"": ""Button"",
                     ""id"": ""7607c7b6-cd76-4816-beef-bd0341cfe950"",
-                    ""expectedControlType"": ""Button"",
+                    ""expectedControlType"": """",
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
@@ -664,6 +664,15 @@ namespace Timeway
                     ""type"": ""PassThrough"",
                     ""id"": ""9caa3d8a-6b2f-4e8e-8bad-6ede561bd9be"",
                     ""expectedControlType"": ""Quaternion"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""AnyKey"",
+                    ""type"": ""Button"",
+                    ""id"": ""348750a7-977a-4d14-a0d8-bd307f1d82ef"",
+                    ""expectedControlType"": """",
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
@@ -1087,6 +1096,17 @@ namespace Timeway
                     ""action"": ""TrackedDeviceOrientation"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""f3c7396b-cba8-472f-8ba1-ee9a313e5fb7"",
+                    ""path"": ""<Keyboard>/anyKey"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""AnyKey"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -1177,6 +1197,7 @@ namespace Timeway
             m_UI_ScrollWheel = m_UI.FindAction("ScrollWheel", throwIfNotFound: true);
             m_UI_TrackedDevicePosition = m_UI.FindAction("TrackedDevicePosition", throwIfNotFound: true);
             m_UI_TrackedDeviceOrientation = m_UI.FindAction("TrackedDeviceOrientation", throwIfNotFound: true);
+            m_UI_AnyKey = m_UI.FindAction("AnyKey", throwIfNotFound: true);
         }
 
         ~@InputSystemActions()
@@ -1452,6 +1473,7 @@ namespace Timeway
         private readonly InputAction m_UI_ScrollWheel;
         private readonly InputAction m_UI_TrackedDevicePosition;
         private readonly InputAction m_UI_TrackedDeviceOrientation;
+        private readonly InputAction m_UI_AnyKey;
         /// <summary>
         /// Provides access to input actions defined in input action map "UI".
         /// </summary>
@@ -1503,6 +1525,10 @@ namespace Timeway
             /// Provides access to the underlying input action "UI/TrackedDeviceOrientation".
             /// </summary>
             public InputAction @TrackedDeviceOrientation => m_Wrapper.m_UI_TrackedDeviceOrientation;
+            /// <summary>
+            /// Provides access to the underlying input action "UI/AnyKey".
+            /// </summary>
+            public InputAction @AnyKey => m_Wrapper.m_UI_AnyKey;
             /// <summary>
             /// Provides access to the underlying input action map instance.
             /// </summary>
@@ -1559,6 +1585,9 @@ namespace Timeway
                 @TrackedDeviceOrientation.started += instance.OnTrackedDeviceOrientation;
                 @TrackedDeviceOrientation.performed += instance.OnTrackedDeviceOrientation;
                 @TrackedDeviceOrientation.canceled += instance.OnTrackedDeviceOrientation;
+                @AnyKey.started += instance.OnAnyKey;
+                @AnyKey.performed += instance.OnAnyKey;
+                @AnyKey.canceled += instance.OnAnyKey;
             }
 
             /// <summary>
@@ -1600,6 +1629,9 @@ namespace Timeway
                 @TrackedDeviceOrientation.started -= instance.OnTrackedDeviceOrientation;
                 @TrackedDeviceOrientation.performed -= instance.OnTrackedDeviceOrientation;
                 @TrackedDeviceOrientation.canceled -= instance.OnTrackedDeviceOrientation;
+                @AnyKey.started -= instance.OnAnyKey;
+                @AnyKey.performed -= instance.OnAnyKey;
+                @AnyKey.canceled -= instance.OnAnyKey;
             }
 
             /// <summary>
@@ -1846,6 +1878,13 @@ namespace Timeway
             /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
             /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
             void OnTrackedDeviceOrientation(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "AnyKey" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnAnyKey(InputAction.CallbackContext context);
         }
     }
 }
