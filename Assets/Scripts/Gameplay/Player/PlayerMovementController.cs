@@ -72,29 +72,10 @@ namespace Timeway.Gameplay.Player
                 return;
             }
 
-            bool touchingWall = PlayerWallColliderHandler.isCollidingWithWall;
-            bool pressingMove = m_InputSystemActions.Player.Move.IsPressed();
-            bool pressingJump = m_InputSystemActions.Player.Jump.IsPressed();
-
-            bool tryingToMoveIntoWall = touchingWall && pressingMove;
-            bool tryingToJumpInWall = touchingWall && pressingJump && !m_IsOnGround;
             bool isPressingAndJumping = m_InputSystemActions.Player.Jump.IsPressed() && !m_IsOnGround;
 
-            if (tryingToJumpInWall)
-            {
-                m_Rigidbody2D.linearVelocity = new Vector2(m_Rigidbody2D.linearVelocity.x, 0f);
-                HandleAnimation();
-            }
-            else if (tryingToMoveIntoWall)
-            {
-                m_Rigidbody2D.linearVelocity = new Vector2(0f, m_Rigidbody2D.linearVelocity.y);
-                HandleAnimation();
-            }
-            else
-            {
-                m_Rigidbody2D.linearVelocity = new Vector2(m_MoveInput.x * m_MoveSpeed, m_Rigidbody2D.linearVelocity.y);
-                HandleAnimation();
-            }
+            m_Rigidbody2D.linearVelocity = new Vector2(m_MoveInput.x * m_MoveSpeed, m_Rigidbody2D.linearVelocity.y);
+            HandleAnimation();
 
             if (isPressingAndJumping)
             {
