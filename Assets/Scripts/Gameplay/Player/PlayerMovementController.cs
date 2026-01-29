@@ -1,14 +1,17 @@
 using System.Runtime.CompilerServices;
+using Timeway.Interfaces;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.InputSystem;
 
 namespace Timeway.Gameplay.Player
 {
-    public class PlayerMovementController : MonoBehaviour
+    public class PlayerMovementController : MonoBehaviour, IDamageableAndCurable
     {
         [SerializeField] private Rigidbody2D m_Rigidbody2D;
         [SerializeField] private Animator m_Aniamtor;
         [SerializeField] private Transform m_WallColliderTransform;
+        [SerializeField] private UnityEvent<GameObject, GameObject>[] m_PlayerEvents;
 
         private InputSystemActions m_InputSystemActions;
         private float m_MoveSpeed = 5f;
@@ -22,6 +25,7 @@ namespace Timeway.Gameplay.Player
         public InputSystemActions inputActions => m_InputSystemActions;
 
         public bool isInteracting => m_IsInteracting;
+        public float amount { get; set; }
 
         private void Awake()
         {
@@ -35,6 +39,7 @@ namespace Timeway.Gameplay.Player
             m_InputSystemActions.Player.Move.canceled += OnActionsTriggered;
             m_InputSystemActions.Player.Jump.performed += OnActionsTriggered;
             m_InputSystemActions.Player.Jump.canceled += OnActionsTriggered;
+            m_InputSystemActions.Player.Health.performed += OnActionsTriggered;
         }
 
         private void OnDisable()
@@ -43,6 +48,7 @@ namespace Timeway.Gameplay.Player
             m_InputSystemActions.Player.Move.canceled -= OnActionsTriggered;
             m_InputSystemActions.Player.Jump.performed -= OnActionsTriggered;
             m_InputSystemActions.Player.Jump.canceled -= OnActionsTriggered;
+            m_InputSystemActions.Player.Health.performed -= OnActionsTriggered;
             m_InputSystemActions.Disable();
             m_InputSystemActions.Dispose();
         }
@@ -120,6 +126,21 @@ namespace Timeway.Gameplay.Player
                     m_TimeDelay = 1f;
                 }
             }
+            if (ctx.action == m_InputSystemActions.Player.Health)
+            {
+                if (ctx.performed)
+                {
+                    TakeDamageOrHealth(Random.Range(amount, 100), gameObject);
+                }
+            }
+        }
+
+        public void TakeDamageOrHealth(float m_Amount, GameObject other)
+        {
+            foreach(UnityEvent<GameObject, GameObject> @event in m_PlayerEvents)
+            {
+                @event?.Invoke(other, gameObject);
+            }
         }
 
         private void OnCollisionEnter2D(Collision2D other)
@@ -128,6 +149,11 @@ namespace Timeway.Gameplay.Player
             {
                 m_IsOnGround = true;
             }
+        }
+
+        private void OnTriggerEnter2D(Collider2D other)
+        {
+            TakeDamageOrHealth(Random.Range(amount, 100), other.gameObject);
         }
 
         private void OnCollisionExit2D(Collision2D other)
