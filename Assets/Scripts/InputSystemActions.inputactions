@@ -85,6 +85,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "Health",
+                    "type": "Button",
+                    "id": "ed301201-c3b2-4ef7-be05-b5371150d789",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -481,6 +490,17 @@
                     "processors": "",
                     "groups": "Keyboard&Mouse",
                     "action": "Crouch",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "10288119-8e98-439b-8dc9-bcfb056a1d13",
+                    "path": "<Keyboard>/q",
+                    "interactions": "Hold(duration=2,pressPoint=0.3)",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Health",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
