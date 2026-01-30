@@ -1385,7 +1385,7 @@ Transform:
   m_GameObject: {fileID: 519420028}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -4.149755, y: -1.9309299, z: -10}
+  m_LocalPosition: {x: -5.0089345, y: -2.86952, z: -10}
   m_LocalScale: {x: 1, y: 0, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -7532,7 +7532,7 @@ MonoBehaviour:
   m_Zones:
   - {fileID: 1885176077}
   - {fileID: 291158773}
-  m_PlayerPosition: {fileID: 0}
+  m_PlayerPosition: {fileID: 1319349728}
   m_CurrentZone: {fileID: 1885176077}
 --- !u!1 &1431492338
 GameObject:
