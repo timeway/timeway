@@ -7289,8 +7289,8 @@ GameObject:
   - component: {fileID: 1319349725}
   - component: {fileID: 1319349724}
   - component: {fileID: 1319349723}
-  - component: {fileID: 1319349722}
   - component: {fileID: 1319349727}
+  - component: {fileID: 1319349728}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -7298,36 +7298,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1319349722
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1319349719}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0ef6e021d4046794e88b665a6253d31b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_Rigidbody2D: {fileID: 1319349723}
-  m_Aniamtor: {fileID: 1319349724}
-  m_WallColliderTransform: {fileID: 1468940011}
-  m_PlayerEvents:
-  - m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 2021737427}
-        m_TargetAssemblyTypeName: Timeway.LifeBarHandler, Assembly-CSharp
-        m_MethodName: LifeBarDecreaseOrIncrease
-        m_Mode: 0
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
 --- !u!50 &1319349723
 Rigidbody2D:
   serializedVersion: 5
@@ -7485,6 +7455,36 @@ CapsuleCollider2D:
   m_Offset: {x: -0.24053383, y: 0.032070994}
   m_Size: {x: 1.056242, y: 2.467367}
   m_Direction: 0
+--- !u!114 &1319349728
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1319349719}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0ef6e021d4046794e88b665a6253d31b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Rigidbody2D: {fileID: 1319349723}
+  m_Aniamtor: {fileID: 1319349724}
+  m_WallColliderTransform: {fileID: 0}
+  m_PlayerEvents:
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 2021737427}
+        m_TargetAssemblyTypeName: Timeway.LifeBarHandler, Assembly-CSharp
+        m_MethodName: LifeBarDecreaseOrIncrease
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!1 &1428707584
 GameObject:
   m_ObjectHideFlags: 0
@@ -7532,7 +7532,7 @@ MonoBehaviour:
   m_Zones:
   - {fileID: 1885176077}
   - {fileID: 291158773}
-  m_PlayerPosition: {fileID: 1319349722}
+  m_PlayerPosition: {fileID: 0}
   m_CurrentZone: {fileID: 1885176077}
 --- !u!1 &1431492338
 GameObject:
