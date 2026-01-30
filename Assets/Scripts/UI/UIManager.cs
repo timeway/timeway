@@ -11,7 +11,7 @@ namespace Timeway.UI
         [SerializeField] private Animator m_PanelAnimator;
         [SerializeField] private InputSystemActions input;
         
-        private PlayerMovementController player;
+        private PlayerController player;
         private bool readyForInput = false;
 
         private void Awake()
@@ -31,7 +31,7 @@ namespace Timeway.UI
             input.UI.Disable();
         }
 
-        public void Show(PlayerMovementController player)
+        public void Show(PlayerController player)
         {
             this.player = player;
             gameObject.SetActive(true);

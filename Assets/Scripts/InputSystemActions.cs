@@ -115,7 +115,7 @@ namespace Timeway
                     ""name"": ""Attack"",
                     ""type"": ""Button"",
                     ""id"": ""6c2ab1b8-8984-453a-af3d-a3c78ae1679a"",
-                    ""expectedControlType"": ""Button"",
+                    ""expectedControlType"": """",
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
@@ -419,7 +419,7 @@ namespace Timeway
                 {
                     ""name"": """",
                     ""id"": ""b3c1c7f0-bd20-4ee7-a0f1-899b24bca6d7"",
-                    ""path"": ""<Keyboard>/enter"",
+                    ""path"": ""<Keyboard>/x"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": ""Keyboard&Mouse"",

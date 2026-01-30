@@ -11,7 +11,7 @@ namespace Timeway.Gameplay.Interactives
 
         private void OnTriggerEnter2D(Collider2D other)
         {
-            if (other.TryGetComponent<PlayerMovementController>(out var player))
+            if (other.TryGetComponent<PlayerController>(out var player))
             {
                 player.StartInteraction();
                 m_UIManager.Show(player); // painel de UI

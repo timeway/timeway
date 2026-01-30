@@ -13,7 +13,7 @@ namespace Timeway.Gameplay.Camera
 
         private void OnTriggerEnter2D(Collider2D other)
         {
-            if (other.TryGetComponent<PlayerMovementController>(out var ctx))
+            if (other.TryGetComponent<PlayerController>(out var ctx))
             {
                 onColliderTrigger?.Invoke(this);
             }
