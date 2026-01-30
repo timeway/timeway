@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Runtime.CompilerServices;
 using Timeway.Interfaces;
 using UnityEngine;
@@ -6,7 +7,7 @@ using UnityEngine.InputSystem;
 
 namespace Timeway.Gameplay.Player
 {
-    public class PlayerMovementController : MonoBehaviour, IDamageableAndCurable
+    public class PlayerController : MonoBehaviour, IDamageableAndCurable
     {
         [SerializeField] private Rigidbody2D m_Rigidbody2D;
         [SerializeField] private Animator m_Aniamtor;
@@ -18,9 +19,11 @@ namespace Timeway.Gameplay.Player
         private float m_JumpSpeed = 5f;
         private Vector2 m_MoveInput;
         private float m_TimeDelay = 1f;
+        private float m_AttackTime = 0.4f;
         private bool m_ConditionFlip;
         private bool m_IsOnGround;
         private bool m_IsInteracting;
+        private bool m_IsAttacking;
 
         public InputSystemActions inputActions => m_InputSystemActions;
 
@@ -40,6 +43,8 @@ namespace Timeway.Gameplay.Player
             m_InputSystemActions.Player.Jump.performed += OnActionsTriggered;
             m_InputSystemActions.Player.Jump.canceled += OnActionsTriggered;
             m_InputSystemActions.Player.Health.performed += OnActionsTriggered;
+            m_InputSystemActions.Player.Attack.started += OnActionsTriggered;
+            // m_InputSystemActions.Player.Attack.canceled += OnActionsTriggered;
         }
 
         private void OnDisable()
@@ -49,6 +54,8 @@ namespace Timeway.Gameplay.Player
             m_InputSystemActions.Player.Jump.performed -= OnActionsTriggered;
             m_InputSystemActions.Player.Jump.canceled -= OnActionsTriggered;
             m_InputSystemActions.Player.Health.performed -= OnActionsTriggered;
+            m_InputSystemActions.Player.Attack.started -= OnActionsTriggered;
+            // m_InputSystemActions.Player.Attack.canceled -= OnActionsTriggered;
             m_InputSystemActions.Disable();
             m_InputSystemActions.Dispose();
         }
@@ -78,6 +85,13 @@ namespace Timeway.Gameplay.Player
                 return;
             }
 
+            if (m_IsAttacking)
+            {
+                m_Rigidbody2D.linearVelocity = Vector2.zero;
+                // HandleAnimation();
+                return;
+            }
+
             bool isPressingAndJumping = m_InputSystemActions.Player.Jump.IsPressed() && !m_IsOnGround;
 
             m_Rigidbody2D.linearVelocity = new Vector2(m_MoveInput.x * m_MoveSpeed, m_Rigidbody2D.linearVelocity.y);
@@ -101,8 +115,8 @@ namespace Timeway.Gameplay.Player
 
         private void OnActionsTriggered(InputAction.CallbackContext ctx)
         {
-            if (m_IsInteracting)
-                return;
+            // if (m_IsInteracting)
+            //     return;
             if (ctx.action == m_InputSystemActions.Player.Move)
             {
                 if (ctx.performed)
@@ -133,6 +147,36 @@ namespace Timeway.Gameplay.Player
                     TakeDamageOrHealth(Random.Range(amount, 100), gameObject);
                 }
             }
+            if (ctx.action == m_InputSystemActions.Player.Attack)
+            {
+                // if (ctx.started)
+                // {
+                //     m_Rigidbody2D.linearVelocity = Vector2.zero;
+                //     StartCoroutine(AttackRoutine());
+                //     // m_IsAttacking = true;
+                //     // HandleAnimation();
+                // }
+                if (ctx.started)
+                {
+                    m_Rigidbody2D.linearVelocity = Vector2.zero;
+                    StartCoroutine(AttackRoutine());
+                    // HandleAnimation();
+                }
+                // if (ctx.canceled)
+                // {
+                //     m_IsAttacking = false;
+                //     // HandleAnimation();
+                // }
+            }
+        }
+
+        IEnumerator AttackRoutine()
+        {
+            m_IsAttacking = true;
+            HandleAnimation();
+            yield return new WaitForSecondsRealtime(m_AttackTime);
+            m_IsAttacking = false;
+            HandleAnimation();
         }
 
         public void TakeDamageOrHealth(float m_Amount, GameObject other)
@@ -169,6 +213,7 @@ namespace Timeway.Gameplay.Player
             m_Aniamtor.SetBool("Idle", m_Rigidbody2D.linearVelocity.x == 0f && m_IsOnGround);
             m_Aniamtor.SetBool("Walking", m_Rigidbody2D.linearVelocity.x != 0f && m_IsOnGround);
             m_Aniamtor.SetBool("Jumping", m_Rigidbody2D.linearVelocity.y != 0f && !m_IsOnGround);
+            m_Aniamtor.SetBool("Attacking", m_IsAttacking && (m_Rigidbody2D.linearVelocity.x == 0f && m_IsOnGround || m_Rigidbody2D.linearVelocity.x != 0f && m_IsOnGround || m_Rigidbody2D.linearVelocity.y != 0f && !m_IsOnGround));
         }
     }
 }

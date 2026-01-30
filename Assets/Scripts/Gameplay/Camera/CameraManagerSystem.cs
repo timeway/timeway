@@ -7,7 +7,7 @@ namespace Timeway.Gameplay.Camera
     public class CameraManagerSystem : MonoBehaviour
     {
         [SerializeField] private List<CameraZones> m_Zones;
-        [SerializeField] private PlayerMovementController m_PlayerPosition; 
+        [SerializeField] private PlayerController m_PlayerPosition; 
 
         [field: SerializeField] private CameraZones m_CurrentZone;
 
