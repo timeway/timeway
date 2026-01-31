@@ -7,27 +7,27 @@ namespace Timeway.Gameplay.Camera
 {
     public class CameraZones : MonoBehaviour
     {
-        public event Action<CameraZones> onColliderTrigger;
+        public event Action<CameraZones> OnEnter;
+        public event Action<CameraZones> OnExit;
 
-        [SerializeField] private CinemachineCamera cinemachineCamera;
+        [SerializeField] private CinemachineCamera m_CinemachineCamera;
+        public CinemachineCamera Camera => m_CinemachineCamera;
+
+        private void Awake()
+        {
+            m_CinemachineCamera.enabled = false;
+        }
 
         private void OnTriggerEnter2D(Collider2D other)
         {
-            if (other.TryGetComponent<PlayerController>(out var ctx))
-            {
-                onColliderTrigger?.Invoke(this);
-            }
+            if (other.TryGetComponent<PlayerController>(out _))
+                OnEnter?.Invoke(this);
         }
 
-        public void DisableCamera()
+        private void OnTriggerExit2D(Collider2D other)
         {
-            cinemachineCamera.enabled = false;
-        }
-
-        public void EnableCamera(Transform target)
-        {
-            cinemachineCamera.enabled = true;
-            cinemachineCamera.Follow = target;
+            if (other.TryGetComponent<PlayerController>(out _))
+                OnExit?.Invoke(this);
         }
     }
 }

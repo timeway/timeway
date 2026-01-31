@@ -10,7 +10,7 @@ namespace Timeway
         private const float MIN_LIFE = 0f;
         private const float MAX_FILL_AMOUNT = 1f;
 
-        public void LifeBarDecreaseOrIncrease(GameObject other, GameObject @this)
+        public void LifeBarDecreaseOrIncrease(GameObject other, GameObject @this, bool condiction)
         {
             if (m_RedLifeImage.fillAmount > MAX_FILL_AMOUNT)
             {
@@ -31,9 +31,8 @@ namespace Timeway
             {
                 m_RedLifeImage.fillAmount -= MAX_LIFE * Random.Range(System.MathF.Sqrt(MAX_LIFE), MAX_LIFE) / System.MathF.Pow(MAX_LIFE, 2);
                 return;
-            }
-
-            m_RedLifeImage.fillAmount += (MAX_LIFE - Random.Range(System.MathF.Sqrt(MAX_LIFE), MAX_LIFE)) / MAX_LIFE;
+            } else if (condiction && other.CompareTag("Player"))
+                m_RedLifeImage.fillAmount += (MAX_LIFE - Random.Range(System.MathF.Sqrt(MAX_LIFE), MAX_LIFE)) / MAX_LIFE;
         }
     }
 }

@@ -6,35 +6,59 @@ namespace Timeway.Gameplay.Camera
 {
     public class CameraManagerSystem : MonoBehaviour
     {
+        [SerializeField] private PlayerController m_Player;
         [SerializeField] private List<CameraZones> m_Zones;
-        [SerializeField] private PlayerController m_PlayerPosition; 
 
-        [field: SerializeField] private CameraZones m_CurrentZone;
-
-        public CameraZones currentZone
-        { 
-            get => m_CurrentZone;
-            set
-            {
-                m_CurrentZone?.DisableCamera();
-                m_CurrentZone = value;
-                m_CurrentZone?.EnableCamera(m_PlayerPosition.transform);
-            }
-        }
+        private readonly Stack<CameraZones> m_ZoneStack = new();
+        private CameraZones m_Current;
 
         private void Start()
         {
-            m_Zones.ForEach(zone => zone.onColliderTrigger += HandleCamera);
+            foreach (var zone in m_Zones)
+            {
+                zone.OnEnter += EnterZone;
+                zone.OnExit += ExitZone;
+            }
         }
 
-        private void OnDestroy()
+        private void EnterZone(CameraZones zone)
         {
-            m_Zones.ForEach(zone => zone.onColliderTrigger -= HandleCamera);
+            if (m_ZoneStack.Contains(zone))
+                return;
+
+            m_ZoneStack.Push(zone);
+            UpdateCamera();
         }
 
-        private void HandleCamera(CameraZones zones)
+        private void ExitZone(CameraZones zone)
         {
-            currentZone = zones;
+            if (!m_ZoneStack.Contains(zone))
+                return;
+
+            var temp = new Stack<CameraZones>();
+
+            while (m_ZoneStack.Peek() != zone)
+                temp.Push(m_ZoneStack.Pop());
+
+            m_ZoneStack.Pop();
+
+            while (temp.Count > 0)
+                m_ZoneStack.Push(temp.Pop());
+
+            UpdateCamera();
+        }
+
+        private void UpdateCamera()
+        {
+            if (m_Current != null)
+                m_Current.Camera.enabled = false;
+
+            if (m_ZoneStack.Count == 0)
+                return;
+
+            m_Current = m_ZoneStack.Peek();
+            m_Current.Camera.enabled = true;
+            m_Current.Camera.Follow = m_Player.transform;
         }
     }
 }
