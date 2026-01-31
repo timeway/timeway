@@ -12,23 +12,26 @@ namespace Timeway.Gameplay.Player
         [SerializeField] private Rigidbody2D m_Rigidbody2D;
         [SerializeField] private Animator m_Aniamtor;
         [SerializeField] private Transform m_WallColliderTransform;
-        [SerializeField] private UnityEvent<GameObject, GameObject>[] m_PlayerEvents;
+        [SerializeField] private UnityEvent<GameObject, GameObject, bool>[] m_PlayerEvents;
+
+        public float amount { get; set; }
 
         private InputSystemActions m_InputSystemActions;
+        private Vector2 m_MoveInput;
+
         private float m_MoveSpeed = 5f;
         private float m_JumpSpeed = 5f;
-        private Vector2 m_MoveInput;
         private float m_TimeDelay = 1f;
         private float m_AttackTime = 0.4f;
         private bool m_ConditionFlip;
         private bool m_IsOnGround;
         private bool m_IsInteracting;
         private bool m_IsAttacking;
+        public bool m_HealthCondiction;
 
         public InputSystemActions inputActions => m_InputSystemActions;
 
         public bool isInteracting => m_IsInteracting;
-        public float amount { get; set; }
 
         private void Awake()
         {
@@ -43,6 +46,7 @@ namespace Timeway.Gameplay.Player
             m_InputSystemActions.Player.Jump.performed += OnActionsTriggered;
             m_InputSystemActions.Player.Jump.canceled += OnActionsTriggered;
             m_InputSystemActions.Player.Health.performed += OnActionsTriggered;
+            m_InputSystemActions.Player.Health.canceled += OnActionsTriggered;
             m_InputSystemActions.Player.Attack.started += OnActionsTriggered;
             // m_InputSystemActions.Player.Attack.canceled += OnActionsTriggered;
         }
@@ -54,8 +58,8 @@ namespace Timeway.Gameplay.Player
             m_InputSystemActions.Player.Jump.performed -= OnActionsTriggered;
             m_InputSystemActions.Player.Jump.canceled -= OnActionsTriggered;
             m_InputSystemActions.Player.Health.performed -= OnActionsTriggered;
+            m_InputSystemActions.Player.Health.canceled -= OnActionsTriggered;
             m_InputSystemActions.Player.Attack.started -= OnActionsTriggered;
-            // m_InputSystemActions.Player.Attack.canceled -= OnActionsTriggered;
             m_InputSystemActions.Disable();
             m_InputSystemActions.Dispose();
         }
@@ -88,7 +92,6 @@ namespace Timeway.Gameplay.Player
             if (m_IsAttacking)
             {
                 m_Rigidbody2D.linearVelocity = Vector2.zero;
-                // HandleAnimation();
                 return;
             }
 
@@ -115,8 +118,6 @@ namespace Timeway.Gameplay.Player
 
         private void OnActionsTriggered(InputAction.CallbackContext ctx)
         {
-            // if (m_IsInteracting)
-            //     return;
             if (ctx.action == m_InputSystemActions.Player.Move)
             {
                 if (ctx.performed)
@@ -144,29 +145,21 @@ namespace Timeway.Gameplay.Player
             {
                 if (ctx.performed)
                 {
+                    m_HealthCondiction = true;
                     TakeDamageOrHealth(Random.Range(amount, 100), gameObject);
+                }
+                if (ctx.canceled)
+                {
+                    m_HealthCondiction = false;
                 }
             }
             if (ctx.action == m_InputSystemActions.Player.Attack)
             {
-                // if (ctx.started)
-                // {
-                //     m_Rigidbody2D.linearVelocity = Vector2.zero;
-                //     StartCoroutine(AttackRoutine());
-                //     // m_IsAttacking = true;
-                //     // HandleAnimation();
-                // }
                 if (ctx.started)
                 {
                     m_Rigidbody2D.linearVelocity = Vector2.zero;
                     StartCoroutine(AttackRoutine());
-                    // HandleAnimation();
                 }
-                // if (ctx.canceled)
-                // {
-                //     m_IsAttacking = false;
-                //     // HandleAnimation();
-                // }
             }
         }
 
@@ -181,9 +174,9 @@ namespace Timeway.Gameplay.Player
 
         public void TakeDamageOrHealth(float m_Amount, GameObject other)
         {
-            foreach(UnityEvent<GameObject, GameObject> @event in m_PlayerEvents)
+            foreach (UnityEvent<GameObject, GameObject, bool> @event in m_PlayerEvents)
             {
-                @event?.Invoke(other, gameObject);
+                @event?.Invoke(other, gameObject, m_HealthCondiction);
             }
         }
 
