@@ -2,7 +2,6 @@ using System.Collections;
 using Timeway.Gameplay.Player;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using Timeway;
 
 namespace Timeway.UI
 {
