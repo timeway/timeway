@@ -1,38 +1,22 @@
+using Timeway.Gameplay.Player;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Timeway
+namespace Timeway.UI
 {
     public class LifeBarHandler : MonoBehaviour
     {
-        public Image m_RedLifeImage;
-        private const float MAX_LIFE = 100f;
-        private const float MIN_LIFE = 0f;
-        private const float MAX_FILL_AMOUNT = 1f;
+        [SerializeField] private Image m_RedLifeImage;
+        [SerializeField] private PlayerController player;
 
-        public void LifeBarDecreaseOrIncrease(GameObject other, GameObject @this, bool condiction)
+        private void Update()
         {
-            if (m_RedLifeImage.fillAmount > MAX_FILL_AMOUNT)
-            {
-                return;
-            }
+            m_RedLifeImage.fillAmount = player.Health / player.MAX_LIFE;
+        }
 
-            if (m_RedLifeImage.fillAmount < MIN_LIFE)
-            {
-                return;
-            }
-
-            if (other.CompareTag("Enemy") && @this.CompareTag("Enemy"))
-            {
-                return;
-            }
-
-            if (other.CompareTag("Enemy") && @this.CompareTag("Player"))
-            {
-                m_RedLifeImage.fillAmount -= MAX_LIFE * Random.Range(System.MathF.Sqrt(MAX_LIFE), MAX_LIFE) / System.MathF.Pow(MAX_LIFE, 2);
-                return;
-            } else if (condiction && other.CompareTag("Player"))
-                m_RedLifeImage.fillAmount += (MAX_LIFE - Random.Range(System.MathF.Sqrt(MAX_LIFE), MAX_LIFE)) / MAX_LIFE;
+        public void LifeIncreaseOrDecrease()
+        {
+            m_RedLifeImage.fillAmount = player.Health / player.MAX_LIFE;
         }
     }
 }
