@@ -6,7 +6,7 @@ using NUnit.Framework;
 
 namespace Timeway.Gameplay.Enemy
 {
-    public class EnemyController : MonoBehaviour, IDamageable
+    public class EnemyController : MonoBehaviour, IDamageable, IDirectionable
     {
         [SerializeField] private GameObject m_EnemyParent;
         [SerializeField] private float m_EnemyMoveSpeed = 5f;
@@ -17,6 +17,7 @@ namespace Timeway.Gameplay.Enemy
         [SerializeField] private EnemyLifeBarHandler m_EnemyLifeBar;
         [SerializeField] private float m_StopDistance = 0.1f;
         [SerializeField] private float m_Damage;
+        [SerializeField] private bool m_IsLookingToRightSide;
 
         private int m_CurrentTargetIndex = 0;
         private float m_MaxHealth = 100f;
@@ -27,6 +28,11 @@ namespace Timeway.Gameplay.Enemy
         {
             get => m_Damage;
             set => m_Damage = value;
+        }
+
+        public bool isLookingToRight
+        {
+            get => m_IsLookingToRightSide;
         }
 
         public List<Transform> targetsPosition => m_TargetsPosition;
@@ -53,6 +59,8 @@ namespace Timeway.Gameplay.Enemy
 
         private void MoveCharacter()
         {
+            float currentXPosition = transform.position.x;
+
             Transform target = m_TargetsPosition[m_CurrentTargetIndex];
 
             transform.position = Vector3.MoveTowards(transform.position, target.position, m_EnemyMoveSpeed * Time.deltaTime);
@@ -61,6 +69,9 @@ namespace Timeway.Gameplay.Enemy
             {
                 m_CurrentTargetIndex = (m_CurrentTargetIndex + 1) % m_TargetsPosition.Count;
             }
+            float nextXPosition = transform.position.x;
+            if (nextXPosition > currentXPosition) m_IsLookingToRightSide = true;
+            else if (nextXPosition < currentTargetIndex) m_IsLookingToRightSide = false;
         }
 
         public void TakeDamage(float m_Amount, GameObject @this)
@@ -81,9 +92,9 @@ namespace Timeway.Gameplay.Enemy
 
             if (other.gameObject.CompareTag("Player"))
             {
-                if (other.TryGetComponent<IDamageable>(out var player))
+                if (other.TryGetComponent<IDamageable>(out var playerDamage))
                 {
-                    player.TakeDamage(m_Damage, gameObject);
+                    playerDamage.TakeDamage(m_Damage, gameObject);
                 }
             }
         }
