@@ -7821,9 +7821,8 @@ MonoBehaviour:
     MaxHealth: 100
     <HealthCapacity>k__BackingField: 20
     <Damage>k__BackingField: 25
-  m_KnockbackForce: 5
-  m_IsMovingToRightSide: 0
-  m_HealthCondiction: 0
+  m_KnockbackForce: 3
+  m_KnockbackTime: 0.6
 --- !u!1 &1428707584
 GameObject:
   m_ObjectHideFlags: 0
@@ -8505,6 +8504,7 @@ MonoBehaviour:
   m_EnemyLifeBar: {fileID: 522357640}
   m_StopDistance: 0.1
   m_Damage: 10
+  m_IsLookingToRightSide: 0
 --- !u!114 &1549610941
 MonoBehaviour:
   m_ObjectHideFlags: 0
