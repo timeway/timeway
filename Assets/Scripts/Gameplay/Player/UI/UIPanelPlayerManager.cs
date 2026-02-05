@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Timeway.Gameplay.Player.UI
 {
-    public class UIDeathPlayerManager : MonoBehaviour
+    public class UIPanelPlayerManager : MonoBehaviour
     {
         [Header("References")]
         [SerializeField] private Animator panelAnimator;

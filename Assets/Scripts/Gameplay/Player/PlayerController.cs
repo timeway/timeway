@@ -46,7 +46,7 @@ namespace Timeway.Gameplay.Player
         [SerializeField] private Rigidbody2D m_Rigidbody2D;
         [SerializeField] private Animator m_Aniamtor;
         [SerializeField] private PlayerSwordController m_PlayerSword;
-        [SerializeField] private UIDeathPlayerManager m_UIDeathPlayerHandler;
+        [SerializeField] private UIPanelPlayerManager m_UIDeathPlayerHandler;
         [SerializeField] private Transform m_StartPlayerPosition;
 
         [Header("Player Event Vector")]
