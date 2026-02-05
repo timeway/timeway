@@ -1,6 +1,7 @@
 using System.Collections;
 using Timeway.Interfaces;
 using Timeway.Input;
+using Timeway.Gameplay.Player.UI;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.InputSystem;
@@ -35,10 +36,18 @@ namespace Timeway.Gameplay.Player
             set => m_PlayerHealth.HealthCapacity = value;
         }
 
+        private bool CanMove =>
+                !m_IsDead &&
+                !m_IsInteracting &&
+                !m_OnKnockback &&
+                !m_IsAttacking;
+
         [Header("Reference Fields")]
         [SerializeField] private Rigidbody2D m_Rigidbody2D;
         [SerializeField] private Animator m_Aniamtor;
         [SerializeField] private PlayerSwordController m_PlayerSword;
+        [SerializeField] private UIDeathPlayerManager m_UIDeathPlayerHandler;
+        [SerializeField] private Transform m_StartPlayerPosition;
 
         [Header("Player Event Vector")]
         [SerializeField] private UnityEvent[] m_PlayerEvents;
@@ -64,6 +73,7 @@ namespace Timeway.Gameplay.Player
         private bool m_OnKnockback;
         private bool m_IsLookingToRightSide;
         private bool m_HealthCondiction;
+        private bool m_IsDead;
 
         public InputSystemActions inputActions => m_InputSystemActions;
 
@@ -124,6 +134,14 @@ namespace Timeway.Gameplay.Player
 
         private void FixedUpdate()
         {
+            if (m_IsDead)
+            {
+                m_MoveInput = Vector2.zero;
+                m_InputSystemActions.Player.Disable();
+                HandleAnimation();
+                return;
+            }
+
             if (m_IsInteracting)
             {
                 m_Rigidbody2D.linearVelocity = Vector2.zero;
@@ -184,6 +202,7 @@ namespace Timeway.Gameplay.Player
 
         private void OnActionsTriggered(InputAction.CallbackContext ctx)
         {
+            if (m_IsDead) return;
             if (ctx.action == m_InputSystemActions.Player.Move)
             {
                 if (ctx.performed)
@@ -230,8 +249,44 @@ namespace Timeway.Gameplay.Player
             }
         }
 
+        private void ResetPlayerState()
+        {
+            m_MoveInput = Vector2.zero;
+
+            m_IsAttacking = false;
+            m_IsAttackTimeEnded = true;
+            m_OnKnockback = false;
+            m_IsInteracting = false;
+
+            m_Rigidbody2D.linearVelocity = Vector2.zero;
+        }
+        
+        private void Die()
+        {
+            if (m_IsDead) return;
+
+            m_InputSystemActions.Player.Disable();
+            ResetPlayerState();
+
+            m_OnKnockback = false;
+            m_IsAttacking = false;
+            m_IsInteracting = false;
+
+
+            m_Rigidbody2D.linearVelocity = Vector2.zero;
+            m_MoveInput = Vector2.zero;
+            m_UIDeathPlayerHandler.Show();
+            m_IsDead = true;
+            HandleAnimation();
+
+            StartCoroutine(ComebackPlayerPosition(m_StartPlayerPosition));
+        }
+
         public void TakeDamage(float amount, GameObject other)
         {
+            if (m_OnKnockback || m_IsDead)
+                return;
+            
             m_PlayerHealth.TakeDamage(amount, other);
 
             foreach (var onDamage in m_PlayerEvents)
@@ -239,30 +294,46 @@ namespace Timeway.Gameplay.Player
                 onDamage?.Invoke();
             }
 
-            if (Mathf.Abs(m_Rigidbody2D.linearVelocity.x) < 0.01f)
+            float deltaX = transform.position.x - other.transform.position.x;
+            Vector2 knockDir = deltaX >= 0 ? Vector2.right : Vector2.left;
+
+            float velocityX = m_Rigidbody2D.linearVelocity.x;
+            if (Mathf.Abs(velocityX) > 0.01f)
             {
-                if (other.TryGetComponent<IDirectionable>(out var enemyDirection))
-                {
-                    KnockbackPlayer(m_IsLookingToRightSide == enemyDirection.isLookingToRight ? (Vector2)transform.localScale + Vector2.up : new Vector2(transform.localScale.x * -1f, 1) + Vector2.up, 1.5f);
-                }
+                bool movingTowardsEnemy =
+                    (velocityX > 0 && deltaX < 0) ||
+                    (velocityX < 0 && deltaX > 0);
+
+                if (movingTowardsEnemy)
+                    knockDir *= 1.2f;
             }
-            else if (m_IsLookingToRightSide && m_Rigidbody2D.linearVelocity.x != 0f)
+
+            knockDir += Vector2.up;
+
+            KnockbackPlayer(knockDir, 1.5f);
+
+            if (m_PlayerHealth.CurrentHealth <= 0f && !m_IsDead)
             {
-                if (m_Rigidbody2D.linearVelocity.x > 0f)
-                    KnockbackPlayer(Vector2.left + Vector2.up, 1f);
-                else if (m_Rigidbody2D.linearVelocity.x < 0f)
-                    KnockbackPlayer(Vector2.right + Vector2.up, 1f);
+                m_Rigidbody2D.linearVelocity = Vector2.zero;
+                m_InputSystemActions.Player.Disable();
+                m_Rigidbody2D.linearVelocity = Vector2.zero;
+                HandleAnimation();
+                Die();
             }
         }
 
         private void KnockbackPlayer(Vector2 direction, float forceMultiplier)
         {
+            if (m_OnKnockback || m_IsDead)
+                return;
+            
             direction.Normalize();
 
             m_Rigidbody2D.linearVelocity = Vector2.zero;
             m_Rigidbody2D.AddForce(direction * m_KnockbackForce * forceMultiplier, ForceMode2D.Impulse);
 
             m_OnKnockback = true;
+            m_IsOnGround = false;
             m_CurrentKnockbackTime = m_KnockbackTime;
         }
 
@@ -296,6 +367,25 @@ namespace Timeway.Gameplay.Player
             HandleAnimation();
         }
 
+        private IEnumerator ComebackPlayerPosition(Transform m_Transform)
+        {
+            yield return new WaitForSeconds(0.5f);
+            m_IsDead = true;
+            yield return new WaitForSeconds(0.6f);
+            
+            transform.position = m_Transform.position;
+
+            m_MoveInput = Vector2.zero;
+            m_Rigidbody2D.linearVelocity = Vector2.zero;
+
+            m_PlayerHealth.Health = MAX_LIFE;
+            m_IsDead = false;
+            m_UIDeathPlayerHandler.Hide();
+
+            m_InputSystemActions.Player.Enable();
+            HandleAnimation();
+        }
+
         private void OnCollisionEnter2D(Collision2D other)
         {
             if (other.gameObject.CompareTag("Ground"))
@@ -314,10 +404,25 @@ namespace Timeway.Gameplay.Player
 
         private void HandleAnimation()
         {
-            m_Aniamtor.SetBool("Idle", m_Rigidbody2D.linearVelocity.x == 0f && m_IsOnGround);
-            m_Aniamtor.SetBool("Walking", m_Rigidbody2D.linearVelocity.x != 0f && m_IsOnGround);
-            m_Aniamtor.SetBool("Jumping", m_Rigidbody2D.linearVelocity.y != 0f && !m_IsOnGround);
-            m_Aniamtor.SetBool("Attacking", m_IsAttacking && (m_Rigidbody2D.linearVelocity.x == 0f && m_IsOnGround || m_Rigidbody2D.linearVelocity.x != 0f && m_IsOnGround || m_Rigidbody2D.linearVelocity.y != 0f && !m_IsOnGround));
+            m_Aniamtor.SetBool("Idle", m_Rigidbody2D.linearVelocity.x == 0f && m_IsOnGround); m_Aniamtor.SetBool("Walking", m_Rigidbody2D.linearVelocity.x != 0f && m_IsOnGround); m_Aniamtor.SetBool("Jumping", m_Rigidbody2D.linearVelocity.y != 0f && !m_IsOnGround); m_Aniamtor.SetBool("Attacking", m_IsAttacking && (m_Rigidbody2D.linearVelocity.x == 0f && m_IsOnGround || m_Rigidbody2D.linearVelocity.x != 0f && m_IsOnGround || m_Rigidbody2D.linearVelocity.y != 0f && !m_IsOnGround));
+            m_Aniamtor.SetBool("Dead", m_PlayerHealth.Health <= 0f && m_IsDead && !m_IsOnGround);
+            // if (m_IsDead)
+            // {
+            //     m_Aniamtor.SetBool("Dead", true);
+            //     m_Aniamtor.SetBool("Idle", false);
+            //     m_Aniamtor.SetBool("Walking", false);
+            //     m_Aniamtor.SetBool("Jumping", false);
+            //     m_Aniamtor.SetBool("Attacking", false);
+            //     return;
+            // }
+
+            // bool isWalking = CanMove && m_MoveInput.x != 0f && m_IsOnGround;
+
+            // m_Aniamtor.SetBool("Dead", false);
+            // m_Aniamtor.SetBool("Idle", CanMove && m_MoveInput.x == 0f && m_IsOnGround);
+            // m_Aniamtor.SetBool("Walking", isWalking);
+            // m_Aniamtor.SetBool("Jumping", m_Rigidbody2D.linearVelocity.y != 0f && !m_IsOnGround);
+            // m_Aniamtor.SetBool("Attacking", m_IsAttacking && (m_Rigidbody2D.linearVelocity.x == 0f && m_IsOnGround || m_Rigidbody2D.linearVelocity.x != 0f && m_IsOnGround || m_Rigidbody2D.linearVelocity.y != 0f && !m_IsOnGround));
         }
     }
 }

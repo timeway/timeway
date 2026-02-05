@@ -9,6 +9,7 @@ namespace Timeway.Gameplay.Enemy
     public class EnemyController : MonoBehaviour, IDamageable, IDirectionable
     {
         [SerializeField] private GameObject m_EnemyParent;
+        [SerializeField] private Animator m_Animator;
         [SerializeField] private float m_EnemyMoveSpeed = 5f;
         [SerializeField] private float m_Health;
         [SerializeField] private List<Transform> m_TargetsPosition;
@@ -23,6 +24,8 @@ namespace Timeway.Gameplay.Enemy
         private float m_MaxHealth = 100f;
         private bool m_IsVunerable;
         private bool m_CanMove = true;
+        private bool m_IsWalking;
+        private bool m_IsDead;
 
         public float Damage
         {
@@ -64,6 +67,7 @@ namespace Timeway.Gameplay.Enemy
             Transform target = m_TargetsPosition[m_CurrentTargetIndex];
 
             transform.position = Vector3.MoveTowards(transform.position, target.position, m_EnemyMoveSpeed * Time.deltaTime);
+            m_IsWalking = true;
 
             if (Vector3.Distance(transform.position, target.position) < m_StopDistance)
             {
@@ -122,6 +126,8 @@ namespace Timeway.Gameplay.Enemy
             }
 
             m_CanMove = false;
+            m_IsWalking = false;
+            m_IsDead = true;
             StartCoroutine(EnemyDeathRoutine());
         }
 
@@ -154,6 +160,12 @@ namespace Timeway.Gameplay.Enemy
             }
 
             m_EnemyParent.SetActive(false);
+        }
+
+        private void HandleAnimation()
+        {
+            m_Animator.SetBool("Walking", m_IsWalking);
+            m_Animator.SetBool("Dead", m_IsDead);
         }
     }
 }

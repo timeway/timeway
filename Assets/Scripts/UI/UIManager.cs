@@ -3,6 +3,7 @@ using Timeway.Gameplay.Player;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Timeway.Input;
+using UnityEditor;
 
 namespace Timeway.UI
 {
@@ -62,7 +63,10 @@ namespace Timeway.UI
             yield return new WaitForSeconds(0.8f);
             // gameObject.SetActive(false);
 
-            Application.Quit();
+#if UNITY_EDITOR
+            EditorApplication.ExitPlaymode();
+#endif
+            // Application.Quit();
 
             // player.EndInteraction();
         }
