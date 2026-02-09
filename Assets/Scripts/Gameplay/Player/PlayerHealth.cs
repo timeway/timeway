@@ -1,32 +1,48 @@
 using UnityEngine;
-using Timeway.Interfaces;
+using System;
 
 namespace Timeway.Gameplay.Player
 {
     [System.Serializable]
-    public class PlayerHealth : IDamageable, ICurable
+    public class PlayerHealth
     {
-        [field: SerializeField] public float CurrentHealth { get; private set; }
-        public float MaxHealth;
-        [property: SerializeField] public float Health { get => CurrentHealth; set => CurrentHealth = value; }
-        [field: SerializeField] public float HealthCapacity { get; set; }
-        [field: SerializeField] public float Damage { get; set; }
+        public event Action<float, float> OnHealthChanged;
+
+        [field: SerializeField] public float currentHealth { get; private set; }
+        private float maxHealth { get; } = 100f;
+
+        [field: SerializeField] public float Health { get; set; }
+        [field: SerializeField] public float healthCapacity { get; set; }
 
         public void Initialize()
         {
-            CurrentHealth = MaxHealth;
+            currentHealth = maxHealth;
+            Health = maxHealth;
+            Notify();
         }
 
         public void TakeDamage(float amount, GameObject source)
         {
-            CurrentHealth -= amount;
-            CurrentHealth = Mathf.Clamp(CurrentHealth, 0f, MaxHealth);
+            currentHealth = Mathf.Clamp(currentHealth - amount, 0f, maxHealth);
+            Notify();
         }
 
         public void TakeHealth(float amount, GameObject source)
         {
-            CurrentHealth += amount;
-            CurrentHealth = Mathf.Clamp(CurrentHealth, 0f, MaxHealth);
+            currentHealth = Mathf.Clamp(currentHealth + amount, 0f, maxHealth);
+            Notify();
+        }
+
+        public void RestoreFullHealth()
+        {
+            currentHealth = maxHealth;
+            Health = maxHealth;
+            Notify();
+        }
+
+        private void Notify()
+        {
+            OnHealthChanged?.Invoke(currentHealth, maxHealth);
         }
     }
 }

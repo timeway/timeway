@@ -6,17 +6,38 @@ namespace Timeway.UI
 {
     public class LifeBarHandler : MonoBehaviour
     {
-        [SerializeField] private Image m_RedLifeImage;
+        [SerializeField] private Image lifeFill;
         [SerializeField] private PlayerController player;
 
-        private void Update()
+        private static LifeBarHandler instance;
+
+        private void Awake()
         {
-            m_RedLifeImage.fillAmount = player.Health / player.MAX_LIFE;
+            if (instance != null && instance != this)
+            {
+                Destroy(gameObject);
+                return;
+            }
+
+            instance = this;
+            DontDestroyOnLoad(gameObject);
+            player.onHealthChanged += UpdateLife;
         }
 
-        public void LifeIncreaseOrDecrease()
+        private void OnDestroy()
         {
-            m_RedLifeImage.fillAmount = player.Health / player.MAX_LIFE;
+            player.onHealthChanged -= UpdateLife;
+        }
+
+        private void UpdateLife(float current, float max)
+        {
+            if (max <= 0f)
+            {
+                lifeFill.fillAmount = 0f;
+                return;
+            }
+
+            lifeFill.fillAmount = current / max;
         }
     }
 }

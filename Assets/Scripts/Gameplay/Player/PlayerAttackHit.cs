@@ -8,6 +8,8 @@ namespace Timeway.Gameplay.Player
         [SerializeField] private float m_Damage;
         [SerializeField] private GameObject m_Owner;
 
+        public float Damage { get => m_Damage; set => m_Damage = value; }
+
         private void OnTriggerEnter2D(Collider2D other)
         {
             if (other.gameObject == m_Owner) return;

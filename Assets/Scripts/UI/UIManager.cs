@@ -3,7 +3,10 @@ using Timeway.Gameplay.Player;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Timeway.Input;
+
+#if UNITY_EDITOR
 using UnityEditor;
+#endif
 
 namespace Timeway.UI
 {
@@ -11,9 +14,9 @@ namespace Timeway.UI
     {
         [SerializeField] private Animator m_PanelAnimator;
         [SerializeField] private InputSystemActions input;
-        
+
         private PlayerController player;
-        private bool readyForInput = false;
+        private bool readyForInput;
 
         private void Awake()
         {
@@ -35,7 +38,6 @@ namespace Timeway.UI
         public void Show(PlayerController player)
         {
             this.player = player;
-            gameObject.SetActive(true);
 
             readyForInput = false;
             AnimateFadingIn();
@@ -45,14 +47,16 @@ namespace Timeway.UI
 
         private IEnumerator WaitAndEnableInput()
         {
-            yield return new WaitForSeconds(3.2f); // tempo da animação
-
+            yield return new WaitForSeconds(3.2f);
             readyForInput = true;
         }
 
         private void OnAnyKey(InputAction.CallbackContext ctx)
         {
-            if (!readyForInput) return;
+            if (!readyForInput)
+                return;
+
+            readyForInput = false;
 
             AnimateFadingOut();
             StartCoroutine(ClosePanel());
@@ -60,15 +64,13 @@ namespace Timeway.UI
 
         private IEnumerator ClosePanel()
         {
-            yield return new WaitForSeconds(0.8f);
-            // gameObject.SetActive(false);
+            yield return new WaitForSeconds(2f);
 
 #if UNITY_EDITOR
             EditorApplication.ExitPlaymode();
+#else
+            Application.Quit();
 #endif
-            // Application.Quit();
-
-            // player.EndInteraction();
         }
 
         private void AnimateFadingIn()

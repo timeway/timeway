@@ -5,18 +5,29 @@ using Timeway.Gameplay.Player.UI;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.InputSystem;
+using System;
 
 namespace Timeway.Gameplay.Player
 {
     public class PlayerController : MonoBehaviour, IDamageable, ICurable, IDirectionable
     {
+        #region events
+        public event Action<float, float> onHealthChanged
+        {
+            add => m_PlayerHealth.OnHealthChanged += value;
+            remove => m_PlayerHealth.OnHealthChanged -= value;
+        }
+        #endregion
+
+        #region variables
+        public static PlayerController instance;
         public float MAX_LIFE { get; private set; } = 100f;
         public float MIN_LIFE { get; private set; } = 0f;
 
         public float Damage
         {
-            get => m_PlayerHealth.Damage;
-            set => m_PlayerHealth.Damage = value;
+            get => m_PlayerAttackHit.Damage;
+            set => m_PlayerAttackHit.Damage = value;
         }
 
         public float Health
@@ -32,22 +43,18 @@ namespace Timeway.Gameplay.Player
 
         public float HealthCapacity
         {
-            get => m_PlayerHealth.HealthCapacity;
-            set => m_PlayerHealth.HealthCapacity = value;
+            get => m_PlayerHealth.healthCapacity;
+            set => m_PlayerHealth.healthCapacity = value;
         }
-
-        private bool CanMove =>
-                !m_IsDead &&
-                !m_IsInteracting &&
-                !m_OnKnockback &&
-                !m_IsAttacking;
 
         [Header("Reference Fields")]
         [SerializeField] private Rigidbody2D m_Rigidbody2D;
         [SerializeField] private Animator m_Aniamtor;
         [SerializeField] private PlayerSwordController m_PlayerSword;
+        [SerializeField] private PlayerAttackHit m_PlayerAttackHit;
         [SerializeField] private UIPanelPlayerManager m_UIDeathPlayerHandler;
-        [SerializeField] private Transform m_StartPlayerPosition;
+        [SerializeField] private SpriteRenderer m_SpriteRenderer;
+        [SerializeField] private CapsuleCollider2D m_PlayerCollider;
 
         [Header("Player Event Vector")]
         [SerializeField] private UnityEvent[] m_PlayerEvents;
@@ -56,8 +63,14 @@ namespace Timeway.Gameplay.Player
         [SerializeField] private float m_KnockbackForce = 2f;
         [SerializeField] private float m_KnockbackTime = 0.6f;
 
+        [Header("Layers")]
+        [SerializeField] private LayerMask m_NothingLayer;
+        [SerializeField] private LayerMask m_EnemyLayer;
+
         private InputSystemActions m_InputSystemActions;
         private Vector2 m_MoveInput;
+        private Transform m_StartPlayerPosition;
+        private IInteractable m_CurrentInteractable;
 
         private float m_MoveSpeed = 5f;
         private float m_JumpSpeed = 5f;
@@ -74,13 +87,30 @@ namespace Timeway.Gameplay.Player
         private bool m_IsLookingToRightSide;
         private bool m_HealthCondiction;
         private bool m_IsDead;
+        private bool m_IsVunerable;
+        private bool m_IsInteractingWithDoor;
+        #endregion
 
+        #region readonly
         public InputSystemActions inputActions => m_InputSystemActions;
 
         public bool isInteracting => m_IsInteracting;
+        public Rigidbody2D physicsController2D => m_Rigidbody2D;
+        public bool isMoving => m_Rigidbody2D.linearVelocityX != 0;
+        public bool isInteractingWithDoor => m_IsInteractingWithDoor;
+        public bool canInteract => !m_IsDead && !m_IsInteracting && !m_IsAttacking && m_IsOnGround;
+        #endregion
 
         private void Awake()
         {
+            if (instance != null && instance != this)
+            {
+                Destroy(gameObject);
+                return;
+            }
+
+            instance = this;
+            
             m_InputSystemActions = new InputSystemActions();
             m_InputSystemActions.Enable();
 
@@ -89,24 +119,26 @@ namespace Timeway.Gameplay.Player
 
         private void OnEnable()
         {
-            m_InputSystemActions.Player.Move.performed += OnActionsTriggered;
-            m_InputSystemActions.Player.Move.canceled += OnActionsTriggered;
-            m_InputSystemActions.Player.Jump.performed += OnActionsTriggered;
-            m_InputSystemActions.Player.Jump.canceled += OnActionsTriggered;
-            m_InputSystemActions.Player.Health.performed += OnActionsTriggered;
-            m_InputSystemActions.Player.Health.canceled += OnActionsTriggered;
-            m_InputSystemActions.Player.Attack.started += OnActionsTriggered;
+            m_InputSystemActions.Player.Move.performed     += OnActionsTriggered;
+            m_InputSystemActions.Player.Move.canceled      += OnActionsTriggered;
+            m_InputSystemActions.Player.Jump.performed     += OnActionsTriggered;
+            m_InputSystemActions.Player.Jump.canceled      += OnActionsTriggered;
+            m_InputSystemActions.Player.Health.performed   += OnActionsTriggered;
+            m_InputSystemActions.Player.Health.canceled    += OnActionsTriggered;
+            m_InputSystemActions.Player.Attack.started     += OnActionsTriggered;
+            m_InputSystemActions.Player.Interact.started += OnActionsTriggered;
         }
 
         private void OnDisable()
         {
-            m_InputSystemActions.Player.Move.performed -= OnActionsTriggered;
-            m_InputSystemActions.Player.Move.canceled -= OnActionsTriggered;
-            m_InputSystemActions.Player.Jump.performed -= OnActionsTriggered;
-            m_InputSystemActions.Player.Jump.canceled -= OnActionsTriggered;
-            m_InputSystemActions.Player.Health.performed -= OnActionsTriggered;
-            m_InputSystemActions.Player.Health.canceled -= OnActionsTriggered;
-            m_InputSystemActions.Player.Attack.started -= OnActionsTriggered;
+            m_InputSystemActions.Player.Move.performed     -= OnActionsTriggered;
+            m_InputSystemActions.Player.Move.canceled      -= OnActionsTriggered;
+            m_InputSystemActions.Player.Jump.performed     -= OnActionsTriggered;
+            m_InputSystemActions.Player.Jump.canceled      -= OnActionsTriggered;
+            m_InputSystemActions.Player.Health.performed   -= OnActionsTriggered;
+            m_InputSystemActions.Player.Health.canceled    -= OnActionsTriggered;
+            m_InputSystemActions.Player.Attack.started     -= OnActionsTriggered;
+            m_InputSystemActions.Player.Interact.started   -= OnActionsTriggered;
             m_InputSystemActions.Disable();
             m_InputSystemActions.Dispose();
         }
@@ -121,8 +153,8 @@ namespace Timeway.Gameplay.Player
             m_IsInteracting = true;
             m_InputSystemActions.Player.Disable();
             m_InputSystemActions.UI.Enable();
-            m_MoveInput = Vector2.zero;
-            m_Rigidbody2D.linearVelocity = Vector2.zero;
+            m_MoveInput = new Vector2(0f, m_MoveInput.y);
+            m_Rigidbody2D.linearVelocity = new Vector2(0f, m_Rigidbody2D.linearVelocity.y);
         }
 
         public void EndInteraction()
@@ -130,6 +162,11 @@ namespace Timeway.Gameplay.Player
             m_IsInteracting = false;
             m_InputSystemActions.UI.Disable();
             m_InputSystemActions.Player.Enable();
+        }
+
+        public void SetvalueToStartPositionObject(Transform m_Arg)
+        {
+            m_StartPlayerPosition = m_Arg;
         }
 
         private void FixedUpdate()
@@ -144,19 +181,12 @@ namespace Timeway.Gameplay.Player
 
             if (m_IsInteracting)
             {
-                m_Rigidbody2D.linearVelocity = Vector2.zero;
+                m_Rigidbody2D.linearVelocity = new Vector2(0f, m_Rigidbody2D.linearVelocity.y);
                 HandleAnimation();
                 return;
             }
 
-            if (m_IsAttacking && m_Rigidbody2D.linearVelocity.x != 0f && m_IsOnGround)
-            {
-                m_Rigidbody2D.linearVelocity = Vector2.zero;
-                HandleAnimation();
-                return;
-            }
-
-            if (m_IsAttacking && m_Rigidbody2D.linearVelocity.x != 0f && m_IsOnGround && !m_IsAttackTimeEnded)
+            if (m_IsAttacking && m_IsOnGround)
             {
                 m_Rigidbody2D.linearVelocity = Vector2.zero;
                 HandleAnimation();
@@ -231,21 +261,26 @@ namespace Timeway.Gameplay.Player
                 if (ctx.performed)
                 {
                     m_HealthCondiction = true;
-                    TakeHealth(m_PlayerHealth.HealthCapacity, gameObject);
+                    TakeHealth(m_PlayerHealth.healthCapacity, gameObject);
                 }
                 if (ctx.canceled)
                 {
                     m_HealthCondiction = false;
                 }
             }
-            if (ctx.action == m_InputSystemActions.Player.Attack)
+            if (ctx.action == m_InputSystemActions.Player.Attack && ctx.started)
             {
-                if (ctx.started)
-                {
-                    m_Rigidbody2D.linearVelocity = Vector2.zero;
-                    HandleAnimation();
-                    StartCoroutine(AttackRoutine());
-                }
+                StartCoroutine(AttackRoutine());
+            }
+            if (ctx.action == m_InputSystemActions.Player.Interact && ctx.started)
+            {
+                if (m_CurrentInteractable == null)
+                    return;
+
+                if (!canInteract)
+                    return;
+
+                m_CurrentInteractable.Interact();
             }
         }
 
@@ -260,7 +295,7 @@ namespace Timeway.Gameplay.Player
 
             m_Rigidbody2D.linearVelocity = Vector2.zero;
         }
-        
+
         private void Die()
         {
             if (m_IsDead) return;
@@ -272,7 +307,6 @@ namespace Timeway.Gameplay.Player
             m_IsAttacking = false;
             m_IsInteracting = false;
 
-
             m_Rigidbody2D.linearVelocity = Vector2.zero;
             m_MoveInput = Vector2.zero;
             m_UIDeathPlayerHandler.Show();
@@ -282,9 +316,26 @@ namespace Timeway.Gameplay.Player
             StartCoroutine(ComebackPlayerPosition(m_StartPlayerPosition));
         }
 
+        private IEnumerator TakeDamageInvunerable()
+        {
+            m_IsVunerable = true;
+            m_Rigidbody2D.excludeLayers = m_EnemyLayer;
+
+            for (int i = 0; i < 3; i++)
+            {
+                m_SpriteRenderer.color = new Color(1f, 1f, 1f, 0.1f);
+                yield return new WaitForSeconds(0.2f);
+
+                m_SpriteRenderer.color = Color.white;
+                yield return new WaitForSeconds(0.2f);
+            }
+            m_IsVunerable = false;
+            m_Rigidbody2D.excludeLayers = m_NothingLayer;
+        }
+
         public void TakeDamage(float amount, GameObject other)
         {
-            if (m_OnKnockback || m_IsDead)
+            if (m_OnKnockback || m_IsDead || m_IsVunerable)
                 return;
             
             m_PlayerHealth.TakeDamage(amount, other);
@@ -293,6 +344,8 @@ namespace Timeway.Gameplay.Player
             {
                 onDamage?.Invoke();
             }
+
+            StartCoroutine(TakeDamageInvunerable());
 
             float deltaX = transform.position.x - other.transform.position.x;
             Vector2 knockDir = deltaX >= 0 ? Vector2.right : Vector2.left;
@@ -312,7 +365,7 @@ namespace Timeway.Gameplay.Player
 
             KnockbackPlayer(knockDir, 1.5f);
 
-            if (m_PlayerHealth.CurrentHealth <= 0f && !m_IsDead)
+            if (m_PlayerHealth.currentHealth <= 0f && !m_IsDead)
             {
                 m_Rigidbody2D.linearVelocity = Vector2.zero;
                 m_InputSystemActions.Player.Disable();
@@ -351,38 +404,46 @@ namespace Timeway.Gameplay.Player
 
         IEnumerator AttackRoutine()
         {
+            if (m_IsAttacking) yield break;
+
             m_IsAttacking = true;
             m_IsAttackTimeEnded = false;
 
-            m_PlayerSword.SwordAttack(m_IsAttacking, m_Rigidbody2D.linearVelocity.x != 0f && m_IsOnGround);
+            m_PlayerSword.EnableSword();
             HandleAnimation();
-            
-            yield return new WaitForSecondsRealtime(m_AttackTime);
-            
-            m_IsAttacking = false;
-            m_PlayerSword.SwordAttack(m_IsAttacking, m_Rigidbody2D.linearVelocity.x != 0f && m_IsOnGround);
 
-            yield return new WaitForSecondsRealtime(1.3f);
+            yield return new WaitForSeconds(m_AttackTime);
+
+            m_PlayerSword.DisableSword();
+            m_IsAttacking = false;
+
+            yield return new WaitForSeconds(0.2f);
             m_IsAttackTimeEnded = true;
             HandleAnimation();
         }
 
         private IEnumerator ComebackPlayerPosition(Transform m_Transform)
         {
-            yield return new WaitForSeconds(0.5f);
-            m_IsDead = true;
-            yield return new WaitForSeconds(0.6f);
-            
+            if (m_Transform == null)
+            {
+                yield break;
+            }
+
+            yield return new WaitForSeconds(1.1f);
+
             transform.position = m_Transform.position;
 
             m_MoveInput = Vector2.zero;
             m_Rigidbody2D.linearVelocity = Vector2.zero;
 
-            m_PlayerHealth.Health = MAX_LIFE;
-            m_IsDead = false;
+            m_IsOnGround = true;
+
+            m_PlayerHealth.RestoreFullHealth();
             m_UIDeathPlayerHandler.Hide();
 
+            m_IsDead = false;
             m_InputSystemActions.Player.Enable();
+
             HandleAnimation();
         }
 
@@ -402,27 +463,35 @@ namespace Timeway.Gameplay.Player
             }
         }
 
+        private void OnTriggerEnter2D(Collider2D other)
+        {
+            if (other.TryGetComponent<IAutoInteractable>(out var autoInteractable))
+            {
+                autoInteractable.Interact();
+                return;
+            }
+
+            if (other.TryGetComponent<IInteractable>(out var interactable))
+            {
+                m_CurrentInteractable = interactable;
+            }
+        }
+
+        private void OnTriggerExit2D(Collider2D other)
+        {
+            if (other.TryGetComponent<IInteractable>(out var interactable) && m_CurrentInteractable == interactable)
+            {
+                m_CurrentInteractable = null;
+            }
+        }
+
         private void HandleAnimation()
         {
-            m_Aniamtor.SetBool("Idle", m_Rigidbody2D.linearVelocity.x == 0f && m_IsOnGround); m_Aniamtor.SetBool("Walking", m_Rigidbody2D.linearVelocity.x != 0f && m_IsOnGround); m_Aniamtor.SetBool("Jumping", m_Rigidbody2D.linearVelocity.y != 0f && !m_IsOnGround); m_Aniamtor.SetBool("Attacking", m_IsAttacking && (m_Rigidbody2D.linearVelocity.x == 0f && m_IsOnGround || m_Rigidbody2D.linearVelocity.x != 0f && m_IsOnGround || m_Rigidbody2D.linearVelocity.y != 0f && !m_IsOnGround));
-            m_Aniamtor.SetBool("Dead", m_PlayerHealth.Health <= 0f && m_IsDead && !m_IsOnGround);
-            // if (m_IsDead)
-            // {
-            //     m_Aniamtor.SetBool("Dead", true);
-            //     m_Aniamtor.SetBool("Idle", false);
-            //     m_Aniamtor.SetBool("Walking", false);
-            //     m_Aniamtor.SetBool("Jumping", false);
-            //     m_Aniamtor.SetBool("Attacking", false);
-            //     return;
-            // }
-
-            // bool isWalking = CanMove && m_MoveInput.x != 0f && m_IsOnGround;
-
-            // m_Aniamtor.SetBool("Dead", false);
-            // m_Aniamtor.SetBool("Idle", CanMove && m_MoveInput.x == 0f && m_IsOnGround);
-            // m_Aniamtor.SetBool("Walking", isWalking);
-            // m_Aniamtor.SetBool("Jumping", m_Rigidbody2D.linearVelocity.y != 0f && !m_IsOnGround);
-            // m_Aniamtor.SetBool("Attacking", m_IsAttacking && (m_Rigidbody2D.linearVelocity.x == 0f && m_IsOnGround || m_Rigidbody2D.linearVelocity.x != 0f && m_IsOnGround || m_Rigidbody2D.linearVelocity.y != 0f && !m_IsOnGround));
+            m_Aniamtor.SetBool("Idle", m_Rigidbody2D.linearVelocity.x == 0f && m_IsOnGround);
+            m_Aniamtor.SetBool("Walking", m_Rigidbody2D.linearVelocity.x != 0f && m_IsOnGround);
+            m_Aniamtor.SetBool("Jumping", m_Rigidbody2D.linearVelocity.y != 0f && !m_IsOnGround);
+            m_Aniamtor.SetBool("Attacking", m_IsAttacking && (m_Rigidbody2D.linearVelocity.x == 0f && m_IsOnGround || m_Rigidbody2D.linearVelocity.x != 0f && m_IsOnGround || m_Rigidbody2D.linearVelocity.y != 0f && !m_IsOnGround));
+            m_Aniamtor.SetBool("Dead", m_PlayerHealth.Health <= 0f && m_IsDead);
         }
     }
 }

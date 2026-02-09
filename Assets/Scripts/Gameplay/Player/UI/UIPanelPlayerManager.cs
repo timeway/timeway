@@ -15,8 +15,18 @@ namespace Timeway.Gameplay.Player.UI
         private bool isVisible;
         private bool canClose;
 
+        private static UIPanelPlayerManager instance;
+
         private void Awake()
         {
+            if (instance != null && instance != this)
+            {
+                Destroy(gameObject);
+                return;
+            }
+
+            instance = this;
+            DontDestroyOnLoad(gameObject);
             SetDefaultState();
         }
 
@@ -75,7 +85,7 @@ namespace Timeway.Gameplay.Player.UI
         private void SetFadeOut()
         {
             panelAnimator.SetBool("Default", false);
-            panelAnimator.SetBool("FaddingIn", false);
+            panelAnimator.SetBool("FaddingIn", true);
             panelAnimator.SetBool("FaddingOut", true);
         }
     }

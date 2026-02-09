@@ -127,7 +127,7 @@ AnimatorStateTransition:
   - m_ConditionMode: 2
     m_ConditionEvent: Default
     m_EventTreshold: 0
-  - m_ConditionMode: 2
+  - m_ConditionMode: 1
     m_ConditionEvent: FaddingIn
     m_EventTreshold: 0
   - m_ConditionMode: 1
@@ -181,7 +181,7 @@ AnimatorController:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: PlayerDeathPanel
+  m_Name: PlayerPanel
   serializedVersion: 5
   m_AnimatorParameters:
   - m_Name: Default
