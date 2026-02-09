@@ -1,0 +1,55 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &964826267722645815
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7033147194861822315}
+  - component: {fileID: 6464223005845921835}
+  m_Layer: 0
+  m_Name: SceneLoadManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7033147194861822315
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 964826267722645815}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 12.456938, y: -0.03323198, z: -0.13208733}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &6464223005845921835
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 964826267722645815}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 79ccac730d8e5c84f83665c01eb5c718, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Canvas: {fileID: 768501816421652430, guid: d81e50e288fdca941bc507e586a4675a, type: 3}
+  m_Player: {fileID: 997387939822867443, guid: c6f727d06bd5981478f6bd8ded0f3835, type: 3}
+  m_LifeBarManager: {fileID: 5719463764457433308, guid: b14ed547d35243242a4bca07798a34fe, type: 3}
+  m_CameraManager: {fileID: 2039019265849354139, guid: 1a0b792964cd38f4b955bf732cf97b9f, type: 3}
+  m_LifeBarHandler: {fileID: 9075513496992683738, guid: b14ed547d35243242a4bca07798a34fe, type: 3}
+  m_ThisScene: {fileID: 102900000, guid: 028b68d5fca900c4c91d7e6e3e5f80fd, type: 3}
+  m_NextScene: {fileID: 102900000, guid: 81208c3a185c731439f40e4cd42621cc, type: 3}
+  m_Scenes: []
+  m_UIPanelManager: {fileID: 1666672974053746144, guid: f73ec11921bb1b649a9ef2d61c052e12, type: 3}

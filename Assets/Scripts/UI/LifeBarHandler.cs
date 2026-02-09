@@ -1,38 +1,43 @@
+using Timeway.Gameplay.Player;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Timeway
+namespace Timeway.UI
 {
     public class LifeBarHandler : MonoBehaviour
     {
-        public Image m_RedLifeImage;
-        private const float MAX_LIFE = 100f;
-        private const float MIN_LIFE = 0f;
-        private const float MAX_FILL_AMOUNT = 1f;
+        [SerializeField] private Image lifeFill;
+        [SerializeField] private PlayerController player;
 
-        public void LifeBarDecreaseOrIncrease(GameObject other, GameObject @this, bool condiction)
+        private static LifeBarHandler instance;
+
+        private void Awake()
         {
-            if (m_RedLifeImage.fillAmount > MAX_FILL_AMOUNT)
+            if (instance != null && instance != this)
             {
+                Destroy(gameObject);
                 return;
             }
 
-            if (m_RedLifeImage.fillAmount < MIN_LIFE)
+            instance = this;
+            DontDestroyOnLoad(gameObject);
+            player.onHealthChanged += UpdateLife;
+        }
+
+        private void OnDestroy()
+        {
+            player.onHealthChanged -= UpdateLife;
+        }
+
+        private void UpdateLife(float current, float max)
+        {
+            if (max <= 0f)
             {
+                lifeFill.fillAmount = 0f;
                 return;
             }
 
-            if (other.CompareTag("Enemy") && @this.CompareTag("Enemy"))
-            {
-                return;
-            }
-
-            if (other.CompareTag("Enemy") && @this.CompareTag("Player"))
-            {
-                m_RedLifeImage.fillAmount -= MAX_LIFE * Random.Range(System.MathF.Sqrt(MAX_LIFE), MAX_LIFE) / System.MathF.Pow(MAX_LIFE, 2);
-                return;
-            } else if (condiction && other.CompareTag("Player"))
-                m_RedLifeImage.fillAmount += (MAX_LIFE - Random.Range(System.MathF.Sqrt(MAX_LIFE), MAX_LIFE)) / MAX_LIFE;
+            lifeFill.fillAmount = current / max;
         }
     }
 }

@@ -7,6 +7,10 @@ TagManager:
   - Ground
   - Wall
   - Enemy
+  - Sword
+  - PreviousPhase
+  - NextPhase
+  - GoToPhase
   layers:
   - Default
   - TransparentFX
@@ -14,7 +18,7 @@ TagManager:
   - CameraBounds
   - Water
   - UI
-  - 
+  - Enemy
   - 
   - 
   - 

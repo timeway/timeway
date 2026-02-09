@@ -1,0 +1,45 @@
+using NUnit.Framework;
+using Timeway.Gameplay.Player;
+using UnityEngine;
+
+namespace Timeway.Gameplay.Player
+{
+    public class PlayerObejctColliderTrigger : MonoBehaviour
+    {
+        public static PlayerObejctColliderTrigger current;
+
+        [SerializeField] private string nextScene;
+        [SerializeField] private string previousScene;
+
+        private void OnTriggerEnter2D(Collider2D other)
+        {
+            if (!other.CompareTag("Player"))
+                return;
+
+            current = this;
+        }
+
+        private void OnTriggerExit2D(Collider2D other)
+        {
+            if (!other.CompareTag("Player"))
+                return;
+
+            if (current == this)
+                current = null;
+        }
+
+        public void TryChangeScene()
+        {
+            var loader = LoadSceneManager.instance;
+            if (loader == null) return;
+
+            if (!string.IsNullOrEmpty(nextScene))
+                loader.SetGoNext(nextScene);
+
+            if (!string.IsNullOrEmpty(previousScene))
+                loader.SetGoPrevious(previousScene);
+
+            loader.LoadScene("");
+        }
+    }
+}
